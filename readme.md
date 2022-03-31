@@ -31,6 +31,9 @@ The dashboard displays:
 ```bash
 git clone https://github.com/cardano-on-the-road/bitcoin-dashboard.git
 ```
+```bash
+cd bitcoin-dashboard
+```
 2. Create a virtual env 
 ```bash
 python3 -m venv venv 
@@ -39,6 +42,8 @@ python3 -m venv venv
 3. Activate the environment and upgrade pip
 ```bash
 source venv/bin/activate  
+```
+```bash
 python -m pip install --upgrade pip
 ```
 
@@ -49,7 +54,6 @@ pip install jupyter
 
 5. Run Jupyter notebook
 ```bash
-cd ./bitcoin-dashboard
 jupyter notebook
 ```
 
