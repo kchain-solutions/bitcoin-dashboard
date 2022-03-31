@@ -34,12 +34,12 @@ git clone https://github.com/cardano-on-the-road/bitcoin-dashboard.git
 2. Create a virtual env 
 ```bash
 python3 -m venv venv 
-python -m pip install --upgrade pip
 ```
 
-3. Activate the environment
+3. Activate the environment and upgrade pip
 ```bash
 source venv/bin/activate  
+python -m pip install --upgrade pip
 ```
 
 4. Install Jupyter notebook
