@@ -9,9 +9,17 @@ from ta import add_all_ta_features
 from mplfinance.original_flavor import candlestick_ohlc
 import trendln
 import matplotlib.gridspec as gs
+import seaborn as sns
+sns.set()
+
 
 levels = []
 
+
+def minmax(npa):
+    mi = np.min(npa)
+    ma = np.max(npa)
+    return [((i - mi) / (ma - mi)) for i in npa] 
 
 def isSupport(df,i):
     support = df['Low'][i] < df['Low'][i-1]  and df['Low'][i] < df['Low'][i+1] \
@@ -149,6 +157,17 @@ class taAnalysis:
         price_ax.plot(df_filtered['Ma21'], color = 'cyan', linewidth = 1.2, label="MA21 -> {0:.2f}".format(df_filtered['Ma21'].iloc[-1]))
         price_ax.plot(df_filtered['Ma50'], color = 'violet', linewidth = 1.2, label="MA50 -> {0:.2f}".format(df_filtered['Ma50'].iloc[-1]))
         price_ax.plot(df_filtered['Ma200'], color = 'crimson', linewidth = 1.2, label="MA200 -> {0:.2f}".format(df_filtered['Ma200'].iloc[-1]))
+        
+        
+        price_ax2 = price_ax.twiny()
+        color = 'tab:orange'
+        price_ax2.set_ylabel('btc-usd', color=color)  
+        price_ax.yaxis.set_label_position("right")
+        price_ax.yaxis.tick_right()
+        w = minmax(np.array(df_filtered['Volume'].values))
+        price_ax2.hist(df_filtered['Close'], bins=150, orientation='horizontal', color=color, weights=w,alpha=0.4)
+        price_ax2.tick_params(axis='y', labelcolor=color)
+        
         price_ax.legend(loc='upper left')
         
         # Gestione delle trendline
@@ -182,14 +201,13 @@ class taAnalysis:
     
         #plt.savefig('./{0}-from-{1}-to-{2}.png'.format(self.asset, self.start_plot_date, self.end_plot_date), 
         #            dpi=300)
-        return fig
+        return fig.show()
     
 if __name__ == "__main__":
-    ta = taAnalysis("btc-usd", "2020-01-01", "2020-01-01")
+    ta = taAnalysis("ada-usd", "2018-01-01", "2020-01-01")
     ta.download_data()
     ta.set_levels()
     df = ta.get_data()
     fig = ta.plot_all()
-    fig.show()
     
         
