@@ -71,7 +71,7 @@ def isFarFromLine(el, buffer):
 
 class taAnalysis:
     
-    def __init__(self, asset, start_date, start_plot_date, end_date = dt.date.today() ,end_plot_date = dt.date.today()):
+    def __init__(self, asset, start_date, start_plot_date= dt.date.today() - dt.timedelta(days=356), end_date = dt.date.today() ,end_plot_date = dt.date.today()):
         self.asset = asset
         self.start_plot_date = start_plot_date
         self.end_plot_date = end_plot_date
@@ -93,28 +93,29 @@ class taAnalysis:
         df = add_all_ta_features(
             df, open="Open", high="High", low="Low", close="Close", volume="Volume")
         self.df = df
+        self.df_filtered = self.df[self.start_plot_date: self.end_plot_date].copy()
         
     def get_data(self):
         return self.df
     
     def set_levels(self):
-        s =  np.mean(self.df['High'] - self.df['Low'])*2 
-        for i in range(2,self.df.shape[0]-2):
-            if isSupport(self.df,i):
-                l = self.df['Low'][i]
+        s =  np.mean(self.df_filtered['High'] - self.df_filtered['Low'])*2 
+        for i in range(2,self.df_filtered.shape[0]-2):
+            if isSupport(self.df_filtered,i):
+                l = self.df_filtered['Low'][i]
         
                 if isFarFromLevel(l, s):
                     levels.append((i,l))
         
-            elif isResistance(self.df,i):
-                l = self.df['High'][i]
+            elif isResistance(self.df_filtered,i):
+                l = self.df_filtered['High'][i]
         
                 if isFarFromLevel(l, s):
                     levels.append((i,l))
         
     def plot_all(self):
         # Filtro i dati da visualizzare
-        df_filtered = self.df[self.start_plot_date: self.end_plot_date].copy()
+        df_filtered=self.df_filtered
         ohlc = df_filtered[['Date', 'Open', 'High', 'Low', 'Close']].copy()
     
         fig = plt.figure(figsize=(25,20))
@@ -158,15 +159,15 @@ class taAnalysis:
         price_ax.plot(df_filtered['Ma50'], color = 'violet', linewidth = 1.2, label="MA50 -> {0:.2f}".format(df_filtered['Ma50'].iloc[-1]))
         price_ax.plot(df_filtered['Ma200'], color = 'crimson', linewidth = 1.2, label="MA200 -> {0:.2f}".format(df_filtered['Ma200'].iloc[-1]))
         
-        
+        #Price profile
         price_ax2 = price_ax.twiny()
-        color = 'tab:orange'
+        color = 'yellow'
         price_ax2.set_ylabel('btc-usd', color=color)  
-        price_ax.yaxis.set_label_position("right")
-        price_ax.yaxis.tick_right()
         w = minmax(np.array(df_filtered['Volume'].values))
-        price_ax2.hist(df_filtered['Close'], bins=150, orientation='horizontal', color=color, weights=w,alpha=0.4)
         price_ax2.tick_params(axis='y', labelcolor=color)
+        price_ax2.axis('off')
+        price_ax2.hist(df_filtered['Close'], bins=150, orientation='horizontal', color=color, weights=w, alpha=0.4)
+
         
         price_ax.legend(loc='upper left')
         
@@ -201,10 +202,10 @@ class taAnalysis:
     
         #plt.savefig('./{0}-from-{1}-to-{2}.png'.format(self.asset, self.start_plot_date, self.end_plot_date), 
         #            dpi=300)
-        return fig.show()
+        fig.show()
     
 if __name__ == "__main__":
-    ta = taAnalysis("ada-usd", "2018-01-01", "2020-01-01")
+    ta = taAnalysis("AMZN", "2018-01-01", "2020-01-01")
     ta.download_data()
     ta.set_levels()
     df = ta.get_data()
