@@ -24,13 +24,11 @@ def minmax(npa):
 def isSupport(df,i):
     support = df['Low'][i] < df['Low'][i-1]  and df['Low'][i] < df['Low'][i+1] \
         and df['Low'][i+1] < df['Low'][i+2] and df['Low'][i-1] < df['Low'][i-2]
-
     return support
 
 def isResistance(df,i):
     resistance = df['High'][i] > df['High'][i-1]  and df['High'][i] > df['High'][i+1] \
         and df['High'][i+1] > df['High'][i+2] and df['High'][i-1] > df['High'][i-2] 
-
     return resistance
 
 def isFarFromLevel(l, s):
@@ -69,6 +67,7 @@ def isFarFromLine(el, buffer):
     return True
 
 
+
 class taAnalysis:
     
     def __init__(self, asset, start_date, start_plot_date= dt.date.today() - dt.timedelta(days=356), end_date = dt.date.today() ,end_plot_date = dt.date.today()):
@@ -77,7 +76,6 @@ class taAnalysis:
         self.end_plot_date = end_plot_date
         self.end_date = end_date
         self.start_date = start_date
-        self.levels = []
         
     def download_data(self):
         downloaded_data = yf.download(self.asset, start=self.start_date, end=self.end_date)
@@ -92,14 +90,14 @@ class taAnalysis:
         df.dropna(inplace=True)
         df = add_all_ta_features(
             df, open="Open", high="High", low="Low", close="Close", volume="Volume")
-        self.df = df
+        self.df = df.copy()
         self.df_filtered = self.df[self.start_plot_date: self.end_plot_date].copy()
         
     def get_data(self):
         return self.df
     
     def set_levels(self):
-        s =  np.mean(self.df_filtered['High'] - self.df_filtered['Low'])*2 
+        s =  np.mean(self.df_filtered['High'] - self.df_filtered['Low'])*1.5 
         for i in range(2,self.df_filtered.shape[0]-2):
             if isSupport(self.df_filtered,i):
                 l = self.df_filtered['Low'][i]
@@ -112,6 +110,7 @@ class taAnalysis:
         
                 if isFarFromLevel(l, s):
                     levels.append((i,l))
+         
         
     def plot_all(self):
         # Filtro i dati da visualizzare
@@ -151,7 +150,7 @@ class taAnalysis:
                          width=0.6, colorup='green', colordown='red', alpha=0.8)
         yLabels = []
         for level in levels:
-            price_ax.axhline(level[1],xmin=0, xmax=1, linestyle='dotted', color = "turquoise", linewidth = 1)
+            price_ax.axhline(level[1],xmin=0, xmax=1, linestyle='dotted', color = "turquoise", linewidth = 2)
             yLabels.append(round(level[1], 0))
         price_ax.set_yticks(np.array(yLabels))
         
@@ -162,7 +161,7 @@ class taAnalysis:
         #Price profile
         price_ax2 = price_ax.twiny()
         color = 'yellow'
-        price_ax2.set_ylabel('btc-usd', color=color)  
+        price_ax2.set_ylabel(self.asset, color=color)  
         w = minmax(np.array(df_filtered['Volume'].values))
         price_ax2.tick_params(axis='y', labelcolor=color)
         price_ax2.axis('off')
@@ -202,9 +201,15 @@ class taAnalysis:
     
         #plt.savefig('./{0}-from-{1}-to-{2}.png'.format(self.asset, self.start_plot_date, self.end_plot_date), 
         #            dpi=300)
+        levels.clear()
         fig.show()
     
 if __name__ == "__main__":
+    ta = taAnalysis("BTC-USD", "2018-01-01", "2020-01-01")
+    ta.download_data()
+    ta.set_levels()
+    df = ta.get_data()
+    fig = ta.plot_all()
     ta = taAnalysis("AMZN", "2018-01-01", "2020-01-01")
     ta.download_data()
     ta.set_levels()
